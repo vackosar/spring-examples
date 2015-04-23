@@ -1,4 +1,4 @@
-package com.vackosar.springexperiment;
+package com.vackosar.springexperiment.aop;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

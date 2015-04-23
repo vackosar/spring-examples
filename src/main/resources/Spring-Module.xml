@@ -9,13 +9,13 @@
 	http://www.springframework.org/schema/aop 
 	http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
  
-	<bean id="helloBean" class="com.vackosar.springexperiment.HelloWorld" scope="prototype">
+	<bean id="helloBean" class="com.vackosar.springexperiment.aop.HelloWorld" scope="prototype">
 		<property name="name" value="Mkyong" />
 	</bean>
 	
-	<bean id="hijackAfterMethod" class="com.vackosar.springexperiment.HijackAfterMethod" />
+	<bean id="hijackAfterMethod" class="com.vackosar.springexperiment.aop.HijackAfterMethod" />
 	
-	<bean id="otherBean" class="com.vackosar.springexperiment.OtherBean" >
+	<bean id="otherBean" class="com.vackosar.springexperiment.aop.OtherBean" >
 		<constructor-arg><ref bean="helloBean"/></constructor-arg>
 	</bean>
 	
@@ -76,8 +76,8 @@
 		<property name="advice" ref="autoproxyAfterMethod" />
 	</bean>
 	
-	<bean id="autoproxyAfterMethod" class="com.vackosar.springexperiment.AutoproxyAfterMethod" />
+	<bean id="autoproxyAfterMethod" class="com.vackosar.springexperiment.aop.AutoproxyAfterMethod" />
  
  	<!--  aop:aspectj-autoproxy /-->
- 	<!-- context:component-scan base-package="com.vackosar.springexperiment" /-->
+ 	<!-- context:component-scan base-package="com.vackosar.springexperiment.aop" /-->
 </beans>

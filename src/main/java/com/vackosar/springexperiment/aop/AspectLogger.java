@@ -1,4 +1,4 @@
-package com.vackosar.springexperiment;
+package com.vackosar.springexperiment.aop;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Before;

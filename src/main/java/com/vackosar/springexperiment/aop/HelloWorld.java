@@ -1,4 +1,4 @@
-package com.vackosar.springexperiment;
+package com.vackosar.springexperiment.aop;
 
 public class HelloWorld {
 	private String name;

@@ -1,4 +1,4 @@
-package com.vackosar.springexperiment;
+package com.vackosar.springexperiment.aop;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

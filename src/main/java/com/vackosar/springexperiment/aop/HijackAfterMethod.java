@@ -1,4 +1,4 @@
-package com.vackosar.springexperiment;
+package com.vackosar.springexperiment.aop;
 
 import java.lang.reflect.Method;
 
