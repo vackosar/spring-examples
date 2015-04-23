@@ -16,7 +16,7 @@
 	<bean id="hijackAfterMethod" class="com.vackosar.springexperiment.HijackAfterMethod" />
 	
 	<bean id="otherBean" class="com.vackosar.springexperiment.OtherBean" >
-		<constructor-arg><ref bean="helloBeanProxy"/></constructor-arg>
+		<constructor-arg><ref bean="helloBean"/></constructor-arg>
 	</bean>
 	
 	
@@ -51,6 +51,32 @@
 			</list>
 		</property>
 	</bean>
+	
+	<bean
+		class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<property name="beanNames">
+			<list>
+				<value>*Bean</value>
+			</list>
+		</property>
+		<property name="interceptorNames">
+			<list>
+				<value>autoproxyAdvisor</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="autoproxyAdvisor"
+		class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<property name="patterns">
+			<list>
+				<value>.*Hello.*</value>
+			</list>
+		</property>
+		<property name="advice" ref="autoproxyAfterMethod" />
+	</bean>
+	
+	<bean id="autoproxyAfterMethod" class="com.vackosar.springexperiment.AutoproxyAfterMethod" />
  
  	<!--  aop:aspectj-autoproxy /-->
  	<!-- context:component-scan base-package="com.vackosar.springexperiment" /-->

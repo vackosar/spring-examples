@@ -7,9 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class OtherBean {
 	
-	public OtherBean() {
-	}
-	
 	public OtherBean(HelloWorld helloWorld) {
 		this.helloWorld = helloWorld;
 	}

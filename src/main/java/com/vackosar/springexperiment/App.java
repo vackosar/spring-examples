@@ -26,6 +26,8 @@ public class App
 		OtherBean obj3 = (OtherBean) context.getBean("otherBean");
 		obj3.printHello();
 		
+		// next line throws:  java.lang.ClassCastException: com.sun.proxy.$Proxy2 cannot be cast to com.vackosar.springexperiment.OtherBean
+		// happens after introducing the autoproxy. Perhaps problem with the CGLib?
 		OtherBean obj4 = (OtherBean) context.getBean("otherBeanProxy");
 		obj4.printHello();
     }
