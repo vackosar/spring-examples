@@ -3,10 +3,9 @@
 main () {
 	local dir="$(dirname "$0")";
 	cd "$dir";
-	#mvn package;
 	mvn eclipse:clean;
 	mvn eclipse:eclipse;
-	mvn;
+	mvn package;
 }
 set -u -e;
 set -x;
