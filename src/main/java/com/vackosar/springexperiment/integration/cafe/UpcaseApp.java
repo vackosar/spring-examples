@@ -1,4 +1,4 @@
-package com.vackosar.springexperiment.integration.quickstartcafe;
+package com.vackosar.springexperiment.integration.cafe;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,11 +24,11 @@ import org.springframework.integration.dsl.IntegrationFlow;
 @Configuration
 @EnableAutoConfiguration
 @IntegrationComponentScan
-public class App {
+public class UpcaseApp {
 
 	public static void main(String[] args) throws InterruptedException {
 		ConfigurableApplicationContext ctx = 
-                                 SpringApplication.run(App.class, args);
+                                 SpringApplication.run(UpcaseApp.class, args);
 
 		List<String> strings = Arrays.asList("foo", "bar");
 		System.out.println(ctx.getBean(Upcase.class).upcase(strings));
