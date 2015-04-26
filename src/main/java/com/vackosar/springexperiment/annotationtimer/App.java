@@ -5,6 +5,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.logging.Logger;
 
+/**
+ * Based on Mkyong tutorial
+ * @author kosar_v
+ *
+ */
 public class App {
 	private static final Logger log = Logger.getLogger(App.class.getName());
 	public static void main(String[] args) {
