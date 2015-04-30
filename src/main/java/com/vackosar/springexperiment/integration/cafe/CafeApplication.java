@@ -72,32 +72,8 @@ public class CafeApplication {
   	  .split(Order.class, Order::getItems)                      // 14
   	  .channel(c -> c.executor(Executors.newCachedThreadPool()))// 15
   	  .<OrderItem, Boolean>route(OrderItem::isIced, mapping -> mapping // 16
-  	    .subFlowMapping("true", sf -> sf                        // 17
-  	      .channel(c -> c.queue(10))                            // 18
-  	      .publishSubscribeChannel(c -> c                       // 19
-  	        .subscribe(s ->                                     // 20
-  	          s.handle(m -> sleepUninterruptibly(1, TimeUnit.SECONDS)))// 21
-  	        .subscribe(sub -> sub                               // 22
-  	          .<OrderItem, String>transform(item ->
-  	            Thread.currentThread().getName()
-  	              + " prepared cold drink #"
-  	              + this.coldDrinkCounter.incrementAndGet()
-  	              + " for order #" + item.getOrderNumber()
-  	              + ": " + item)                                 // 23
-  	          .handle(m -> System.out.println(m.getPayload())))))// 24
-  	    .subFlowMapping("false", sf -> sf                        // 25
-  	      .channel(c -> c.queue(10))
-  	      .publishSubscribeChannel(c -> c
-  	        .subscribe(s ->
-  	          s.handle(m -> sleepUninterruptibly(5, TimeUnit.SECONDS)))// 26
-  	        .subscribe(sub -> sub
-  	          .<OrderItem, String>transform(item ->
-  	            Thread.currentThread().getName()
-  	              + " prepared hot drink #"
-  	              + this.hotDrinkCounter.incrementAndGet()
-  	              + " for order #" + item.getOrderNumber()
-  	              + ": " + item)
-  	          .handle(m -> System.out.println(m.getPayload()))))))
+  	    .subFlowMapping("true", routeIced())// 24
+  	    .subFlowMapping("false", routeNotIced()))
   	  .<OrderItem, Drink>transform(orderItem ->
   	    new Drink(orderItem.getOrderNumber(),
   	      orderItem.getDrinkType(),
@@ -113,6 +89,38 @@ public class CafeApplication {
   	      ((Drink) m.getPayload()).getOrderNumber()), null)     // 31
   	  .handle(CharacterStreamWritingMessageHandler.stdout());   // 32
   }
+
+private IntegrationFlow routeNotIced() {
+	return sf -> sf                        // 25
+	  .channel(c -> c.queue(10))
+	  .publishSubscribeChannel(c -> c
+	    .subscribe(s ->
+	      s.handle(m -> sleepUninterruptibly(5, TimeUnit.SECONDS)))// 26
+	    .subscribe(sub -> sub
+	      .<OrderItem, String>transform(item ->
+	        Thread.currentThread().getName()
+	          + " prepared hot drink #"
+	          + this.hotDrinkCounter.incrementAndGet()
+	          + " for order #" + item.getOrderNumber()
+	          + ": " + item)
+	      .handle(m -> System.out.println(m.getPayload()))));
+}
+
+private IntegrationFlow routeIced() {
+	return sf -> sf                        // 17
+	  .channel(c -> c.queue(10))                            // 18
+	  .publishSubscribeChannel(c -> c                       // 19
+	    .subscribe(s ->                                     // 20
+	      s.handle(m -> sleepUninterruptibly(1, TimeUnit.SECONDS)))// 21
+	    .subscribe(sub -> sub                               // 22
+	      .<OrderItem, String>transform(item ->
+	        Thread.currentThread().getName()
+	          + " prepared cold drink #"
+	          + this.coldDrinkCounter.incrementAndGet()
+	          + " for order #" + item.getOrderNumber()
+	          + ": " + item)                                 // 23
+	      .handle(m -> System.out.println(m.getPayload()))));
+}
 
 private void sleepUninterruptibly(int i, TimeUnit seconds) {
 	try {
