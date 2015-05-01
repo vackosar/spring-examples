@@ -40,50 +40,50 @@ import org.springframework.integration.transformer.GenericTransformer;
 @IntegrationComponentScan            
 public class CafeApplication {
 
-  public static void main(String[] args) throws Exception {
-  	ConfigurableApplicationContext ctx =
-  	              SpringApplication.run(CafeApplication.class, args);
+public static void main(String[] args) throws Exception {
+	ConfigurableApplicationContext ctx =
+	              SpringApplication.run(CafeApplication.class, args);
 
-  	Cafe cafe = ctx.getBean(Cafe.class);                         
-  	for (int i = 1; i <= 100; i++) {                             
-       Order order = new Order(i);
-       order.addItem(DrinkType.LATTE, 2, false); 
-       order.addItem(DrinkType.MOCHA, 3, true);  
-       cafe.placeOrder(order);
-  	}
+	Cafe cafe = ctx.getBean(Cafe.class);                         
+	for (int i = 1; i <= 100; i++) {                             
+ Order order = new Order(i);
+ order.addItem(DrinkType.LATTE, 2, false); 
+ order.addItem(DrinkType.MOCHA, 3, true);  
+ cafe.placeOrder(order);
+	}
 
-  	System.out.println("Hit 'Enter' to terminate");              
-  	System.in.read();
-  	ctx.close();
-  }
+	System.out.println("Hit 'Enter' to terminate");              
+	System.in.read();
+	ctx.close();
+}
 
-  @MessagingGateway                                              
-  public interface Cafe {
+@MessagingGateway                                              
+public interface Cafe {
 
-  	@Gateway(requestChannel = "orders.input")                    
-  	void placeOrder(Order order);                                
+	@Gateway(requestChannel = "orders.input")                    
+	void placeOrder(Order order);                                
 
-  }
+}
 
-  private AtomicInteger hotDrinkCounter = new AtomicInteger();
+private AtomicInteger hotDrinkCounter = new AtomicInteger();
 
-  private AtomicInteger coldDrinkCounter = new AtomicInteger();  
+private AtomicInteger coldDrinkCounter = new AtomicInteger();  
 
-  @Bean(name = PollerMetadata.DEFAULT_POLLER)
-  public PollerMetadata poller() {                               
-  	return Pollers.fixedDelay(1000).get();
-  }
+@Bean(name = PollerMetadata.DEFAULT_POLLER)
+public PollerMetadata poller() {                               
+	return Pollers.fixedDelay(1000).get();
+}
 
-  @Bean
-  public IntegrationFlow orders() {                             
-  	return f -> f                                               
-  	  .split(Order.class, Order::getItems)                      
-  	  .channel(getThreadPoolMessageChannelSpec())
-  	  .route(OrderItem::isIced, getIsIcedConsumer())
-  	  .transform(getOrderItemToDrinkTransformer())                                
-  	  .aggregate(getDrinksToDelivery(), null)     
-  	  .handle(CharacterStreamWritingMessageHandler.stdout());   
-  }
+@Bean
+public IntegrationFlow orders() {                             
+	return f -> f                                               
+	  .split(Order.class, Order::getItems)                      
+	  .channel(getThreadPoolMessageChannelSpec())
+	  .route(OrderItem::isIced, getIsIcedConsumer())
+	  .transform(getOrderItemToDrinkTransformer())                                
+	  .aggregate(getDrinksToDelivery(), null)     
+	  .handle(CharacterStreamWritingMessageHandler.stdout());   
+}
 
 private Function<Channels, MessageChannelSpec<?, ?>> getThreadPoolMessageChannelSpec() {
 	return c -> c.executor(Executors.newCachedThreadPool());
@@ -97,9 +97,9 @@ private Consumer<RouterSpec<MethodInvokingRouter>> getIsIcedConsumer() {
 
 private Consumer<AggregatorSpec> getDrinksToDelivery() {
 	return aggregator -> aggregator                       
-  	    .outputProcessor(groupDrinksToDelivery())                     
-  	    .correlationStrategy(m ->
-  	      ((Drink) m.getPayload()).getOrderNumber());
+	    .outputProcessor(groupDrinksToDelivery())                     
+	    .correlationStrategy(m ->
+	      ((Drink) m.getPayload()).getOrderNumber());
 }
 
 private MessageGroupProcessor groupDrinksToDelivery() {
@@ -112,10 +112,10 @@ private MessageGroupProcessor groupDrinksToDelivery() {
 
 private GenericTransformer<OrderItem, Drink> getOrderItemToDrinkTransformer() {
 	return orderItem ->
-  	    new Drink(orderItem.getOrderNumber(),
-  	      orderItem.getDrinkType(),
-  	      orderItem.isIced(),
-  	      orderItem.getShots());
+	    new Drink(orderItem.getOrderNumber(),
+	      orderItem.getDrinkType(),
+	      orderItem.isIced(),
+	      orderItem.getShots());
 }
 
 private IntegrationFlow routeNotIced() {
