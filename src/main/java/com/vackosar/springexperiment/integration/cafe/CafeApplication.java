@@ -1,9 +1,9 @@
 package com.vackosar.springexperiment.integration.cafe;
 
-import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,89 +14,96 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.dsl.AggregatorSpec;
+import org.springframework.integration.dsl.Channels;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.RouterSpec;
+import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.support.Consumer;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.dsl.support.Function;
+import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
 import org.springframework.integration.transformer.GenericTransformer;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-
-import java.util.stream.Collectors;
 
 /**
  * Based on
- * https://spring.io/blog/2014/11/25/spring-integration-java-dsl-line-by-line-tutorial
- * http://docs.spring.io/spring-integration/reference/html/samples.html
- * https://github.com/spring-projects/spring-integration-samples/tree/master/applications/cafe/cafe-si
+ * https:
+ * http:
+ * https:
  * 
  * @author kosar_v
  *
  */
 
-@SpringBootApplication               // 1
-@IntegrationComponentScan            // 2
+@SpringBootApplication               
+@IntegrationComponentScan            
 public class CafeApplication {
 
   public static void main(String[] args) throws Exception {
   	ConfigurableApplicationContext ctx =
-  	              SpringApplication.run(CafeApplication.class, args);// 3
+  	              SpringApplication.run(CafeApplication.class, args);
 
-  	Cafe cafe = ctx.getBean(Cafe.class);                         // 4
-  	for (int i = 1; i <= 100; i++) {                             // 5
+  	Cafe cafe = ctx.getBean(Cafe.class);                         
+  	for (int i = 1; i <= 100; i++) {                             
        Order order = new Order(i);
-       order.addItem(DrinkType.LATTE, 2, false); //hot
-       order.addItem(DrinkType.MOCHA, 3, true);  //iced
+       order.addItem(DrinkType.LATTE, 2, false); 
+       order.addItem(DrinkType.MOCHA, 3, true);  
        cafe.placeOrder(order);
   	}
 
-  	System.out.println("Hit 'Enter' to terminate");              // 6
+  	System.out.println("Hit 'Enter' to terminate");              
   	System.in.read();
   	ctx.close();
   }
 
-  @MessagingGateway                                              // 7
+  @MessagingGateway                                              
   public interface Cafe {
 
-  	@Gateway(requestChannel = "orders.input")                    // 8
-  	void placeOrder(Order order);                                // 9
+  	@Gateway(requestChannel = "orders.input")                    
+  	void placeOrder(Order order);                                
 
   }
 
   private AtomicInteger hotDrinkCounter = new AtomicInteger();
 
-  private AtomicInteger coldDrinkCounter = new AtomicInteger();  // 10
+  private AtomicInteger coldDrinkCounter = new AtomicInteger();  
 
   @Bean(name = PollerMetadata.DEFAULT_POLLER)
-  public PollerMetadata poller() {                               // 11
+  public PollerMetadata poller() {                               
   	return Pollers.fixedDelay(1000).get();
   }
 
   @Bean
-  public IntegrationFlow orders() {                             // 12
-  	return f -> f                                               // 13
-  	  .split(Order.class, Order::getItems)                      // 14
-  	  .channel(c -> c.executor(Executors.newCachedThreadPool()))// 15
-  	  .<OrderItem, Boolean>route(
-  			  OrderItem::isIced, mapping -> mapping // 16
-  	    .subFlowMapping("true", routeIced())// 24
-  	    .subFlowMapping("false", routeNotIced()))
-  	  .transform(getOrderItemToDrinkTransformer())                                // 27
-  	  .aggregate(getDrinksToDelivery(), null)     // 31
-  	  .handle(CharacterStreamWritingMessageHandler.stdout());   // 32
+  public IntegrationFlow orders() {                             
+  	return f -> f                                               
+  	  .split(Order.class, Order::getItems)                      
+  	  .channel(getThreadPoolMessageChannelSpec())
+  	  .route(OrderItem::isIced, getIsIcedConsumer())
+  	  .transform(getOrderItemToDrinkTransformer())                                
+  	  .aggregate(getDrinksToDelivery(), null)     
+  	  .handle(CharacterStreamWritingMessageHandler.stdout());   
   }
 
+private Function<Channels, MessageChannelSpec<?, ?>> getThreadPoolMessageChannelSpec() {
+	return c -> c.executor(Executors.newCachedThreadPool());
+}
+
+private Consumer<RouterSpec<MethodInvokingRouter>> getIsIcedConsumer() {
+	return mapping -> mapping 
+	    .subFlowMapping(Boolean.TRUE.toString(), routeIced())
+	    .subFlowMapping(Boolean.FALSE.toString(), routeNotIced());
+}
+
 private Consumer<AggregatorSpec> getDrinksToDelivery() {
-	return aggregator -> aggregator                       // 28
-  	    .outputProcessor(groupDrinksToDelivery())                     // 30
+	return aggregator -> aggregator                       
+  	    .outputProcessor(groupDrinksToDelivery())                     
   	    .correlationStrategy(m ->
   	      ((Drink) m.getPayload()).getOrderNumber());
 }
 
 private MessageGroupProcessor groupDrinksToDelivery() {
-	return group ->                               // 29
+	return group ->                               
 	  new Delivery(group.getMessages()
 	    .stream()
 	    .map(message -> (Drink) message.getPayload())
@@ -112,11 +119,11 @@ private GenericTransformer<OrderItem, Drink> getOrderItemToDrinkTransformer() {
 }
 
 private IntegrationFlow routeNotIced() {
-	return sf -> sf                        // 25
+	return sf -> sf                        
 	  .channel(c -> c.queue(10))
 	  .publishSubscribeChannel(c -> c
 	    .subscribe(s ->
-	      s.handle(m -> sleepUninterruptibly(5, TimeUnit.SECONDS)))// 26
+	      s.handle(m -> sleepUninterruptibly(5, TimeUnit.SECONDS)))
 	    .subscribe(sub -> sub
 	      .<OrderItem, String>transform(item ->
 	        Thread.currentThread().getName()
@@ -128,18 +135,18 @@ private IntegrationFlow routeNotIced() {
 }
 
 private IntegrationFlow routeIced() {
-	return sf -> sf                        // 17
-	  .channel(c -> c.queue(10))                            // 18
-	  .publishSubscribeChannel(c -> c                       // 19
-	    .subscribe(s ->                                     // 20
-	      s.handle(m -> sleepUninterruptibly(1, TimeUnit.SECONDS)))// 21
-	    .subscribe(sub -> sub                               // 22
+	return sf -> sf                        
+	  .channel(c -> c.queue(10))                            
+	  .publishSubscribeChannel(c -> c                       
+	    .subscribe(s ->                                     
+	      s.handle(m -> sleepUninterruptibly(1, TimeUnit.SECONDS)))
+	    .subscribe(sub -> sub                               
 	      .<OrderItem, String>transform(item ->
 	        Thread.currentThread().getName()
 	          + " prepared cold drink #"
 	          + this.coldDrinkCounter.incrementAndGet()
 	          + " for order #" + item.getOrderNumber()
-	          + ": " + item)                                 // 23
+	          + ": " + item)                                 
 	      .handle(m -> System.out.println(m.getPayload()))));
 }
 
@@ -147,7 +154,7 @@ private void sleepUninterruptibly(int i, TimeUnit seconds) {
 	try {
 		Thread.sleep(i * 1000);
 	} catch (InterruptedException e) {
-		// no nothing
+		// do nothing
 	}
 }
 
