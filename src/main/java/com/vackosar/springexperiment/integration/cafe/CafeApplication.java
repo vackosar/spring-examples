@@ -28,9 +28,9 @@ import org.springframework.integration.transformer.GenericTransformer;
 
 /**
  * Based on
- * https:
- * http:
- * https:
+ * https://spring.io/blog/2014/11/25/spring-integration-java-dsl-line-by-line-tutorial
+ * http://docs.spring.io/spring-integration/reference/html/samples.html
+ * https://github.com/spring-projects/spring-integration-samples/tree/master/applications/cafe/cafe-si
  * 
  * @author kosar_v
  *
