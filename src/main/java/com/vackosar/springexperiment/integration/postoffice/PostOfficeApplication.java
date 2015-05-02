@@ -26,8 +26,10 @@ public class PostOfficeApplication {
 		ConfigurableApplicationContext ctx = SpringApplication.run(
 				PostOfficeApplication.class, args);
 		PostOffice postOffice = ctx.getBean(PostOffice.class);
-		Letter letter = new Letter("Vaclav Kosar, The Prague Castle", 12000,
-				"Dear king Vaclav, I love you.");
+		Letter letter = new Letter("Prague Castle", 12000,
+				"Dear King.");
+		postOffice.send(letter);
+		letter = new Letter("Spilberg Castle", 14000, "Dear King.");
 		postOffice.send(letter);
 	}
 
@@ -41,31 +43,34 @@ public class PostOfficeApplication {
 
 	@Bean
 	public IntegrationFlow letters() {
-		return f -> f.route(Letter::getZipCode, getZipcodeConsumer()).handle(
-				m -> System.out.println(((Letter) m.getPayload()).getZipCode()));
+		return f -> f.route(Letter::getZipCode, getZipcodeConsumer());
 	}
-	
+
 	@Bean(name = PollerMetadata.DEFAULT_POLLER)
-	public PollerMetadata poller() {                               
+	public PollerMetadata poller() {
 		return Pollers.fixedDelay(1000).get();
 	}
 
 	private Consumer<RouterSpec<MethodInvokingRouter>> getZipcodeConsumer() {
-		return mapping -> mapping
-				.subFlowMapping("12000", routeToPrague())
-				.subFlowMapping("15000", routeToPrague());
-	}
-	
-	private IntegrationFlow routeToPrague() {
-		return sf -> sf                        
-				  .channel(c -> c.queue(10))                            
-				  .publishSubscribeChannel(c -> c                       
-					  .subscribe(sub -> sub  
-					      .<Letter, String> transform(letter -> "Deliver for zipcode: " + letter.getZipCode())
-					      .handle(m -> System.out.println(m.getPayload()))
-					   )
-				   );
+		return mapping -> mapping.channelMapping("12000", "toPrague.input")
+				.channelMapping("14000", "toBrno.input");
 	}
 
-	
+	@Bean
+	public IntegrationFlow toPrague() {
+		return letterLogger("Prague");
+	}
+
+	@Bean
+	public IntegrationFlow toBrno() {
+		return letterLogger("Brno");
+	}
+
+	private IntegrationFlow letterLogger(String city) {
+		return sf -> sf.<Letter, String> transform(
+				letter -> "Deliver to " + city + " for zipcode: "
+						+ letter.getZipCode()).handle(
+				m -> System.out.println(m.getPayload()));
+	}
+
 }
