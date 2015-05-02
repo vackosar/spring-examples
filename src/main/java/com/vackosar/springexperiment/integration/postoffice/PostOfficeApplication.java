@@ -26,8 +26,8 @@ public class PostOfficeApplication {
 		ConfigurableApplicationContext ctx = SpringApplication.run(
 				PostOfficeApplication.class, args);
 		PostOffice postOffice = ctx.getBean(PostOffice.class);
-		Letter letter = new Letter("Prague Castle", 12000,
-				"Dear King.");
+		Letter letter;
+		letter = new Letter("Prague Castle", 12000, "Dear King.");
 		postOffice.send(letter);
 		letter = new Letter("Spilberg Castle", 14000, "Dear King.");
 		postOffice.send(letter);
