@@ -13,6 +13,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>4.1.3.RELEASE</spring.version>
+		<spring.batch.version>2.2.0.RELEASE</spring.batch.version>
 		<aspectj.version>1.6.11</aspectj.version>
 		<quartz.version>2.2.1</quartz.version>
 	</properties>
@@ -120,12 +121,30 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<!--  dependency>
-			<groupId>org.springframework.integration.samples</groupId>
-			<artifactId>cafe-si</artifactId>
-			<version>3.0.0.BUILD-SNAPSHOT</version>
-			<scope>compile</scope>
-		</dependency -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-oxm</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-core</artifactId>
+			<version>${spring.batch.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-infrastructure</artifactId>
+			<version>${spring.batch.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-test</artifactId>
+			<version>${spring.batch.version}</version>
+		</dependency>
+
 	</dependencies>
 
 	<repositories>
